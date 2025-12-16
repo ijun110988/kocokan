@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rolling PIC Produk</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-family: monospace;
+    }
+
+    button {
+      padding: 10px 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    th {
+      background: #f1f5f9;
+    }
+
+    /* 🔄 Loading Animation */
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #cbd5f5;
+      border-top: 3px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .shuffle {
+      animation: pulse 0.3s infinite;
+      color: #2563eb;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔄 Rolling PIC Produk</h1>
+
+<h3>Daftar Developer</h3>
+<textarea id="developers">
+Andre
+Fandi
+Valdi
+Risman
+Aris
+Yanto
+Ijunn
+</textarea>
+
+<h3>Daftar Produk (Nama Produk | PIC Lama)</h3>
+<textarea id="products">
+app a | Andre
+app b | Andre
+website | Andre
+XDR | Arint
+mobil app | Valdi
+</textarea>
+
+<button id="shuffleBtn" onclick="generateRolling()">🎲 Kocok Data</button>
+
+<div id="loading" class="loading" style="display:none;">
+  <div class="spinner"></div>
+  <span>Mengocok data PIC...</span>
+</div>
+
+<table id="resultTable" style="display:none">
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Nama Produk</th>
+      <th>PIC Sebelumnya</th>
+      <th>PIC Baru</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getFinalPIC(devs, exclude) {
+  const filtered = devs.filter(d => d !== exclude);
+  return filtered.length ? randomItem(filtered) : exclude;
+}
+
+function generateRolling() {
+  const btn = document.getElementById("shuffleBtn");
+  const loading = document.getElementById("loading");
+  const table = document.getElementById("resultTable");
+  const tbody = table.querySelector("tbody");
+
+  const developers = document.getElementById("developers")
+    .value.split("\n").map(d => d.trim()).filter(Boolean);
+
+  const products = document.getElementById("products")
+    .value.split("\n").map(p => p.trim()).filter(Boolean);
+
+  btn.disabled = true;
+  btn.textContent = "Mengocok...";
+  loading.style.display = "flex";
+  table.style.display = "table";
+  tbody.innerHTML = "";
+
+  // Render awal (shuffle animation)
+  products.forEach((line, i) => {
+    const [product, oldPic] = line.split("|").map(s => s.trim());
+    tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${product}</td>
+        <td>${oldPic}</td>
+        <td class="shuffle">⏳</td>
+      </tr>`;
+  });
+
+  // Fake shuffle effect
+  const shuffleInterval = setInterval(() => {
+    [...tbody.querySelectorAll(".shuffle")].forEach(cell => {
+      cell.textContent = randomItem(developers);
+    });
+  }, 120);
+
+  // Final result
+  setTimeout(() => {
+    clearInterval(shuffleInterval);
+    tbody.innerHTML = "";
+
+    products.forEach((line, i) => {
+      const [product, oldPic] = line.split("|").map(s => s.trim());
+      const newPic = getFinalPIC(developers, oldPic);
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${product}</td>
+          <td>${oldPic}</td>
+          <td><strong>${newPic}</strong></td>
+        </tr>`;
+    });
+
+    loading.style.display = "none";
+    btn.disabled = false;
+    btn.textContent = "🎲 Kocok Data";
+
+  }, 1500);
+}
+</script>
+
+</body>
+</html>
